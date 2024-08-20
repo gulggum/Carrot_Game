@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>당근게임</title>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+  </head>
+  <body>
+    <audio class="bgMusic" src="/sound/bg.mp3"></audio>
+    <audio class="carrotMusic" src="/sound/carrot_pull.mp3"></audio>
+    <audio src="/sound/bug_pull.mp3" class="bugMusic"></audio>
+    <audio src="/sound/game_win.mp3" class="winMusic"></audio>
+    <audio src="/sound/alert.wav" class="loseMusic"></audio>
+    <img src="img/background.png" alt="" width="100%" />
+    <div class="gameGuid">
+      <p>시간안에 10개의 당근을 뽑으면 성공! 벌레를 잡게되면 실패!!</p>
+    </div>
+    <div class="handleBtns">
+      <div class="playBtn">
+        <i class="fa-solid fa-circle-play fa-2xl"></i>
+      </div>
+      <div class="timeCouter">10</div>
+      <div class="carrotNumber">10</div>
+      <div class="message">
+        <span class="success success-hidden">축하합니다 성공~</span>
+        <span class="fail fail-hidden">아쉽군요...실패!!!</span>
+        <span class="returnGame return-hidden">다시하기 🪄</span>
+      </div>
+    </div>
+    <div class="randomItemsField"></div>
+
+    <script
+      src="https://kit.fontawesome.com/73deddf0a6.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
