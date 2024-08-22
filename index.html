@@ -8,28 +8,27 @@
     <link rel="stylesheet" href="style.css" type="text/css" />
   </head>
   <body>
-    <audio class="bgMusic" src="/sound/bg.mp3"></audio>
-    <audio class="carrotMusic" src="/sound/carrot_pull.mp3"></audio>
-    <audio src="/sound/bug_pull.mp3" class="bugMusic"></audio>
-    <audio src="/sound/game_win.mp3" class="winMusic"></audio>
-    <audio src="/sound/alert.wav" class="loseMusic"></audio>
-    <img src="img/background.png" alt="" width="100%" />
-    <div class="gameGuid">
-      <p>시간안에 10개의 당근을 뽑으면 성공! 벌레를 잡게되면 실패!!</p>
-    </div>
-    <div class="handleBtns">
-      <div class="playBtn">
-        <i class="fa-solid fa-circle-play fa-2xl"></i>
+    <section class="game">
+      <div class="gameGuid">
+        <span
+          >시간안에 10개의 당근을 뽑으면 성공! <br />벌레를 잡게되면
+          실패!!</span
+        >
       </div>
-      <div class="timeCouter">10</div>
-      <div class="carrotNumber">10</div>
-      <div class="message">
-        <span class="success success-hidden">축하합니다 성공~</span>
-        <span class="fail fail-hidden">아쉽군요...실패!!!</span>
-        <span class="returnGame return-hidden">다시하기 🪄</span>
-      </div>
-    </div>
-    <div class="randomItemsField"></div>
+      <header class="game__handle">
+        <button class="playBtn">
+          <i class="fas fa-play fa-2xl"></i>
+        </button>
+        <span class="game__timer">0:0</span>
+        <span class="game__score">10</span>
+      </header>
+      <section class="game__field"></section>
+    </section>
+    <section class="pop-up">
+      <button class="pop-up__replay__Btn">
+        <i class="fas fa-redo fa-2xl"></i></button
+      ><span class="pop-up__message"></span>
+    </section>
 
     <script
       src="https://kit.fontawesome.com/73deddf0a6.js"

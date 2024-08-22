@@ -1,117 +1,206 @@
-const body = document.querySelector("body");
+const CARROT_SIZE = 80;
+const CARROT_COUNT = 10;
+const BUG_COUNT = 10;
+const GAME_DURATION_SEC = 5;
+
+const field = document.querySelector(".game__field");
+const fieldRect = field.getBoundingClientRect(); //field의 좌표,너비등정보
 const playBtn = document.querySelector(".playBtn");
-const timeCounter = document.querySelector(".timeCouter");
-const carrotNumber = document.querySelector(".carrotNumber");
-const carrots = document.querySelector(".carrots");
-const bugs = document.querySelector(".bugs");
-const success = document.querySelector(".success");
-const fail = document.querySelector(".fail");
-const returns = document.querySelector(".returnGame");
-const field = document.querySelector(".randomItemsField");
-//오디오
-const bgMusic = document.querySelector(".bgMusic");
-const carrotMusic = document.querySelector(".carrotMusic");
-const bugMusic = document.querySelector(".bugMusic");
-const loseMusic = document.querySelector(".loseMusic");
-const winMusic = document.querySelector(".winMusic");
+const gameTimer = document.querySelector(".game__timer");
+const gameScore = document.querySelector(".game__score");
+const pop__Up = document.querySelector(".pop-up");
+const replayBtn = document.querySelector(".pop-up__replay__Btn");
+const popUpMessage = document.querySelector(".pop-up__message");
 
-let timer;
-let isRunning = false;
-const numberOfImages = 10;
-let clickCount = 10;
-let savedState = "";
+const carrotSound = new Audio("./sound/carrot_pull.mp3");
+const bugSound = new Audio("./sound/bug_pull.mp3");
+const alertSound = new Audio("./sound/alert.wav");
+const bgSound = new Audio("./sound/bg.mp3");
+const winSound = new Audio("./sound/game_win.mp3");
 
-//음악 자동재생
+let started = false; //게임 시작할떈 true라는걸로 지정해줌
+let score = 0;
+let timer = undefined; // 위 false로 게임이 멈춰있다가(undefined)시작되면 타이머작동하도록
+let intervalId;
+let intervalActive = false;
 
-//당근 랜덤배치
-const appearCarrots = () => {
-  for (let i = 0; i < numberOfImages; i++) {
-    const fieldRect = field.getBoundingClientRect();
-    const locationX = Math.floor(Math.random() * fieldRect.x * 100);
-    const locationY = Math.floor(Math.random() * fieldRect.y);
-    const carrot = document.createElement("button");
-    carrot.classList.add("carrot");
-    carrot.innerHTML = `<img src="img/carrot.png" />`;
-    carrot.style.transform = `translate(${locationX}px,${locationY}px)`;
-    field.appendChild(carrot);
-
-    const removeCarrot = () => {
-      carrotMusic.play();
-      field.removeChild(carrot);
-      --clickCount;
-      carrotNumber.innerText = `${clickCount}`;
-
-      if (clickCount === 0) {
-        winMusic.play();
-        success.classList.remove("success-hidden");
-        returns.classList.remove("return-hidden");
-      }
-    };
-    carrot.addEventListener("click", removeCarrot);
+// 게임시작 이벤트
+const handlePlay = () => {
+  if (started) {
+    stopGame();
+  } else {
+    startGame();
   }
 };
 
-//벌레 랜덤배치
-const appearBugs = () => {
-  for (let i = 0; i <= numberOfImages; i++) {
-    const fieldRect = field.getBoundingClientRect();
-    const locationX = Math.floor(Math.random() * fieldRect.x * 100);
-    const locationY = Math.floor(Math.random() * fieldRect.y);
-    const bugs = document.createElement("button");
-    bugs.classList.add("bugs");
-    bugs.innerHTML = `<img src="img/bug.png" />`;
-    bugs.style.transform = `translate(${locationX}px,${locationY}px)`;
-    field.appendChild(bugs);
-    const removeBug = () => {
-      bugMusic.play();
-      if (removeBug) {
-        loseMusic.play();
-        fail.classList.remove("fail-hidden");
-        returns.classList.remove("return-hidden");
-      }
-    };
-    bugs.addEventListener("click", removeBug);
-  }
-};
+function returnPlayClick() {
+  location.reload();
+  hidePopUp();
+}
 
-// 카운트다운
-const countDown = () => {
-  let startSecond = 10;
-  timeCounter.innerText = `${startSecond}`;
-  timer = setInterval(function () {
-    --startSecond;
-    if (startSecond <= -1) {
-      loseMusic.play();
+//게임 시작
+function startGame() {
+  started = true;
+  initGame();
+  pauseBtn();
+  showTimerAndScore();
+  startGameTimer();
+  playSound(bgSound);
+}
+
+//게임 멈춤
+function stopGame() {
+  started = false;
+  stopGameTimer();
+  pauseBtnHide();
+  showPopUp();
+  playSound(alertSound);
+  stopSound(bgSound);
+  returnPlayClick();
+}
+
+function finishGame(win) {
+  started = false;
+  // pauseBtnHide();
+  if (win) {
+    playSound(winSound);
+  } else {
+    playSound(bugSound);
+  }
+  stopSound(bgSound);
+  stopGameTimer();
+  showPopUp();
+  showPopUpMessage(
+    win
+      ? (popUpMessage.innerText = "You Won 🎉")
+      : (popUpMessage.innerText = "You Lost 🤷‍♂️")
+  );
+}
+
+function pauseBtnHide() {
+  playBtn.style.visibility = "hidden";
+}
+
+function pauseBtn() {
+  const paused = document.querySelector(".fas");
+  paused.classList.add("fa-stop");
+  paused.classList.remove("fa-play");
+  playBtn.style.visibility = "visible";
+}
+
+function showTimerAndScore() {
+  gameTimer.style.visibility = "visible";
+  gameScore.style.visibility = "visible";
+  //visibility로 css에 hidden을 설정해줄수있다
+}
+
+function startGameTimer() {
+  let remainingTimeSec = GAME_DURATION_SEC;
+  updateTimerText(remainingTimeSec);
+  timer = setInterval(() => {
+    updateTimerText(--remainingTimeSec);
+    if (remainingTimeSec <= 0) {
       clearInterval(timer);
-      fail.classList.remove("fail-hidden");
-      returns.classList.remove("return-hidden");
-    } else {
-      timeCounter.innerText = `${startSecond}`;
+      finishGame(); //타이머가 종료되면 게임을 끝내준다
+      return;
     }
   }, 1000);
-  const stopTimer = () => {
-    clearInterval(timer);
-    isRunning = false;
-  };
-};
-//클릭 핸들동작
-const handlePlay = () => {
-  const pauseBtn =
-    (playBtn.innerHTML = `<i class="fa-solid fa-pause fa-2xl"></i>`);
-  if (pauseBtn) {
-    clearInterval(timer);
+}
+
+function stopGameTimer() {
+  clearInterval(timer);
+}
+
+function updateTimerText(time) {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  gameTimer.innerText = `${minutes}:${seconds}`;
+}
+
+function showPopUp() {
+  pop__Up.style.visibility = "visible";
+  popUpMessage.innerText = "Replay?";
+  showPopUpMessage();
+}
+
+function hidePopUp() {
+  pop__Up.style.visibility = "hidden";
+  popUpMessage.style.visibility = "hidden";
+}
+
+// 게임 아이템 배치
+function initGame() {
+  field.innerHTML = ""; // 필드의 값을 초기화(계속 추가되는걸 방지)
+  score = 0;
+  gameScore.innerText = CARROT_COUNT;
+
+  addItem("carrot", CARROT_COUNT, "img/carrot.png");
+  addItem("bug", BUG_COUNT, "img/bug.png");
+}
+
+//필드내 이벤트들
+const fieldClick = (event) => {
+  if (!started) {
+    return;
   }
-  countDown();
-  appearCarrots();
-  appearBugs();
-  bgMusic.play().catch((error) => {
-    console.log("음악재생오류");
-  });
-  playBtn.removeEventListener("click", handlePlay);
+  const target = event.target;
+  if (target.matches(".carrot")) {
+    target.remove();
+    score++;
+    playSound(carrotSound);
+    updateScoreBoard();
+    if (score === CARROT_COUNT) {
+      finishGame(true); //이겼으니 true!
+    }
+  } else if (target.matches(".bug")) {
+    finishGame(false); //졌으니 false 게임을 끝내다
+  }
 };
 
-const returnGames = () => {
-  location.reload();
-};
+function playSound(sound) {
+  sound.currentTime = 0; //다시 시작하게되면 처음부터 재생이되도록 0 설정
+  sound.play();
+}
+
+function stopSound(sound) {
+  sound.pause();
+}
+
+function updateScoreBoard() {
+  gameScore.innerText = CARROT_COUNT - score;
+  console.log(`🥕${CARROT_COUNT} -${score}`);
+}
+
+function showPopUpMessage() {
+  popUpMessage.style.visibility = "visible";
+}
+
+// 아이템(carrot,bug) 랜덤 배치하기
+function addItem(className, count, imgPath) {
+  //field의 x,y의 전체 좌표범위
+  x1 = 0;
+  y1 = 0;
+  x2 = fieldRect.width - CARROT_SIZE;
+  y2 = fieldRect.height - CARROT_SIZE;
+  for (let i = 0; i < count; i++) {
+    const item = document.createElement("img");
+    item.setAttribute("class", className);
+    item.setAttribute("src", imgPath);
+    item.style.position = "absolute";
+    item.style.cursor = "pointer";
+
+    const x = randomNumber(x1, x2);
+    const y = randomNumber(y1, y2);
+    item.style.left = `${x}px`;
+    item.style.top = `${y}px`;
+    field.appendChild(item);
+  }
+}
+
+function randomNumber(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 playBtn.addEventListener("click", handlePlay);
-returns.addEventListener("click", returnGames);
+field.addEventListener("click", fieldClick);
+replayBtn.addEventListener("click", returnPlayClick);
